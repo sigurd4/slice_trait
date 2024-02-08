@@ -3,8 +3,9 @@ name = "slice_trait"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
-description = "A generic trait for any slice, with item as type parameter"
+description = "A generic trait for any slice, with item as a type parameter"
 repository = "https://github.com/sigurd4/slice_trait"
+keywords = ["slice", "generic", "trait"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
