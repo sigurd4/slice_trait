@@ -55,6 +55,10 @@ mod test
     #[test]
     fn test()
     {
+        // const traits work again??
+        #[allow(unused)]
+        const S: &[f32] = Slice::as_slice([1.0f32].as_slice());
+
         let mut a = [1, 2, 3];
         let a_slice = a.as_mut_slice();
 
