@@ -2,10 +2,30 @@
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
 
+//! A trait for any slice, with item as an associated type.
+//!
+//! # Example
+//!
+//! ```rust
+//! use slice_trait::*;
+//!
+//! const A: &[i32] = [1, 2, 3].as_slice();
+//!
+//! const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Item>
+//! where
+//!     S::Item: Copy,
+//! {
+//!     slice.as_slice().first()
+//! }
+//!
+//! assert_eq!(first(A), Some(&1));
+//! ```
+
 use core::ops::{
     Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
 };
 
+/// Prerequesites for a slice of `T`
 pub trait SlicePrereq<T> = ?Sized
     + /*~const*/
     Index<usize, Output = <[T] as Index<usize>>::Output>
@@ -36,6 +56,7 @@ pub trait SlicePrereq<T> = ?Sized
     + /*~const*/
     IndexMut<RangeFull>;
 
+/// A trait for a slice `[Self::Item]`
 #[const_trait]
 pub trait Slice: private::Slice + SlicePrereq<<Self as Slice>::Item>
 {
@@ -70,21 +91,16 @@ mod test
     #[test]
     fn test()
     {
-        // const traits work again??
-        #[allow(unused)]
-        const S: &[f32] = Slice::as_slice([1.0f32].as_slice());
+        const A: &[i32] = [1, 2, 3].as_slice();
 
-        let mut a = [1, 2, 3];
-        let a_slice = a.as_mut_slice();
-
-        fn first<'a, S: Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Item>
+        const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Item>
         where
             S::Item: Copy,
         {
             slice.as_slice().first()
         }
 
-        println!("{:?}", first(a_slice))
+        assert_eq!(first(A), Some(&1));
     }
 }
 
