@@ -10,7 +10,8 @@
 [![Latest Version](https://img.shields.io/crates/v/slice_trait.svg)](https://crates.io/crates/slice_trait)
 [![License:MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Documentation](https://img.shields.io/docsrs/slice_trait)](https://docs.rs/slice_trait)
-[![Coverage Status](https://coveralls.io/repos/github/sigurd4/slice_trait/badge.svg?branch=master)](https://coveralls.io/github/sigurd4/slice_trait?branch=master)
+[![Coverage Status](https://img.shields.io/codecov/c/github/sigurd4/slice_trait)](https://app.codecov.io/github/sigurd4/slice_trait)
+
 
 # slice_trait
 
