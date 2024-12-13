@@ -7,6 +7,8 @@
 //! # Example
 //!
 //! ```rust
+//! #![feature(const_trait_impl)]
+//!
 //! use slice_trait::*;
 //!
 //! const A: &[i32] = [1, 2, 3].as_slice();
