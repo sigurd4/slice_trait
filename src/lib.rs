@@ -23,39 +23,37 @@
 //! assert_eq!(first(A), Some(&1));
 //! ```
 
-use core::ops::{
-    Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive,
-};
+use core::ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive};
 
 /// Prerequesites for a slice of `T`
 pub trait SlicePrereq<T> = ?Sized
-    + /*~const*/
+    + /* ~const */
     Index<usize, Output = <[T] as Index<usize>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<Range<usize>, Output = <[T] as Index<Range<usize>>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<RangeInclusive<usize>, Output = <[T] as Index<RangeInclusive<usize>>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<RangeFrom<usize>, Output = <[T] as Index<RangeFrom<usize>>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<RangeTo<usize>, Output = <[T] as Index<RangeTo<usize>>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<RangeToInclusive<usize>, Output = <[T] as Index<RangeToInclusive<usize>>>::Output>
-    + /*~const*/
+    + /* ~const */
     Index<RangeFull, Output = <[T] as Index<RangeFull>>::Output>
-    + /*~const*/
+    + /* ~const */
     IndexMut<usize>
-    + /*~const*/
+    + /* ~const */
     IndexMut<Range<usize>>
-    + /*~const*/
+    + /* ~const */
     IndexMut<RangeInclusive<usize>>
-    + /*~const*/
+    + /* ~const */
     IndexMut<RangeFrom<usize>>
-    + /*~const*/
+    + /* ~const */
     IndexMut<RangeTo<usize>>
-    + /*~const*/
+    + /* ~const */
     IndexMut<RangeToInclusive<usize>>
-    + /*~const*/
+    + /* ~const */
     IndexMut<RangeFull>;
 
 /// A trait for a slice `[Self::Item]`
@@ -79,6 +77,7 @@ impl<T> const Slice for [T]
     {
         self
     }
+
     fn as_mut_slice(&mut self) -> &mut [Self::Item]
     {
         self
@@ -97,7 +96,7 @@ mod test
 
         const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Item>
         where
-            S::Item: Copy,
+            S::Item: Copy
         {
             slice.as_slice().first()
         }
