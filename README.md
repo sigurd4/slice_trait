@@ -12,7 +12,6 @@
 [![Documentation](https://img.shields.io/docsrs/slice_trait)](https://docs.rs/slice_trait)
 [![Coverage Status](https://img.shields.io/codecov/c/github/sigurd4/slice_trait)](https://app.codecov.io/github/sigurd4/slice_trait)
 
-
 # slice_trait
 
 A trait for any slice, with item as an associated type.
