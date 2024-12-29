@@ -16,6 +16,8 @@
 
 A trait for any slice, with item as an associated type.
 
+This crate is a subset of the crate [`slice_ops`](https://crates.io/crates/slice_ops).
+
 ## Example
 
 ```rust
