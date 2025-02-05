@@ -2,6 +2,9 @@
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
 #![feature(const_deref)]
+#![feature(const_array_as_mut_slice)]
+#![feature(allocator_api)]
+#![cfg_attr(feature = "alloc", feature(const_vec_string_slice))]
 
 //! A trait for any slice, with item as an associated type.
 //! 
@@ -32,7 +35,7 @@ extern crate alloc;
 moddef::moddef!(
     flat(pub) mod {
         as_slice,
-        into_slice,
+        into_boxed_slice for cfg(feature = "alloc"),
         prereq,
         slice,
         boxed_slice for cfg(feature = "alloc")
