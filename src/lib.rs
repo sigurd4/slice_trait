@@ -7,7 +7,7 @@
 #![cfg_attr(feature = "alloc", feature(const_vec_string_slice))]
 
 //! A trait for any slice, with item as an associated type.
-//! 
+//!
 //! This crate is a subset of the crate [`slice_ops`](https://crates.io/crates/slice_ops).
 //!
 //! # Example
@@ -41,7 +41,6 @@ moddef::moddef!(
         boxed_slice for cfg(feature = "alloc")
     }
 );
-
 
 #[cfg(test)]
 mod test
