@@ -60,19 +60,20 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<T, A> const AsSlice for alloc::boxed::Box<[T], A>
+impl<T, A> const AsSlice for alloc::boxed::Box<T, A>
 where
-    A: core::alloc::Allocator
+    A: core::alloc::Allocator,
+    T: ~const AsSlice + ?Sized
 {
-    type Item = T;
+    type Item = T::Item;
 
     fn as_slice(&self) -> &[Self::Item]
     {
-        &**self
+        (**self).as_slice()
     }
 
     fn as_mut_slice(&mut self) -> &mut [Self::Item]
     {
-        &mut **self
+        (**self).as_mut_slice()
     }
 }

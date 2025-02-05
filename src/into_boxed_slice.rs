@@ -38,7 +38,7 @@ impl<T> /*const*/ IntoBoxedSlice for Vec<T>
         self.shrink_to_fit();
 
         let (ptr, len, cap, alloc) = self.into_raw_parts_with_alloc();
-        assert_eq!(len, cap);
+        assert_eq!(len, cap, "Memory leak detected");
 
         unsafe {
             Box::from_raw_in(core::slice::from_raw_parts_mut(ptr, len), alloc)
