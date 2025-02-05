@@ -1,6 +1,7 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
+#![feature(const_deref)]
 
 //! A trait for any slice, with item as an associated type.
 //! 
@@ -67,7 +68,7 @@ mod private
     impl<T> Slice for [T] {}
 
     #[cfg(feature = "alloc")]
-    pub trait BoxedSlice: crate::IntoSlice {}
+    pub trait BoxedSlice: crate::IntoBoxedSlice {}
 
     #[cfg(feature = "alloc")]
     impl<T> BoxedSlice for alloc::boxed::Box<[T]> {}

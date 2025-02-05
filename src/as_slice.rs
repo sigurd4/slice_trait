@@ -1,3 +1,5 @@
+use core::ops::DerefMut;
+
 /// A trait for obtaining a slice `[Self::Item]`
 #[const_trait]
 pub trait AsSlice
@@ -26,18 +28,19 @@ impl<T> const AsSlice for [T]
     }
 }
 
-#[cfg(feature = "alloc")]
-impl<T> const AsSlice for alloc::boxed::Box<[T]>
+impl<T, U> const AsSlice for U
+where
+    U: ~const DerefMut<Target = [T]>
 {
     type Item = T;
 
     fn as_slice(&self) -> &[Self::Item]
     {
-        self
+        self.deref()
     }
 
     fn as_mut_slice(&mut self) -> &mut [Self::Item]
     {
-        self
+        self.deref_mut()
     }
 }
