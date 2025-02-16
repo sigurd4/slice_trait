@@ -2,17 +2,17 @@ use crate::AsSlice;
 
 use alloc::{boxed::Box, vec::Vec, alloc::Global};
 
-/// A trait for obtaining a boxed slice `[Self::Item]`
+/// A trait for obtaining a boxed slice `[Self::Elem]`
 #[const_trait]
 pub trait IntoBoxedSlice: ~const AsSlice + Sized
 {
     /// Yields boxed slice from generic
-    fn into_boxed_slice(self) -> Box<[Self::Item]>;
+    fn into_boxed_slice(self) -> Box<[Self::Elem]>;
 }
 
 impl<T, const N: usize> IntoBoxedSlice for [T; N]
 {
-    fn into_boxed_slice(self) -> Box<[Self::Item]>
+    fn into_boxed_slice(self) -> Box<[Self::Elem]>
     {
         let mut boxed = Box::new_in(self, Global);
         let ptr = boxed.as_mut_ptr();
@@ -25,7 +25,7 @@ impl<T, const N: usize> IntoBoxedSlice for [T; N]
 
 impl<T> const IntoBoxedSlice for Box<[T]>
 {
-    fn into_boxed_slice(self) -> Box<[Self::Item]>
+    fn into_boxed_slice(self) -> Box<[Self::Elem]>
     {
         self
     }
@@ -33,7 +33,7 @@ impl<T> const IntoBoxedSlice for Box<[T]>
 
 impl<T> /*const*/ IntoBoxedSlice for Vec<T>
 {
-    fn into_boxed_slice(mut self) -> Box<[Self::Item]>
+    fn into_boxed_slice(mut self) -> Box<[Self::Elem]>
     {
         self.shrink_to_fit();
 

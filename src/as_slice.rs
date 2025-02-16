@@ -2,25 +2,25 @@
 #[const_trait]
 pub trait AsSlice
 {
-    type Item: Sized;
+    type Elem: Sized;
 
     /// Yields slice from generic
-    fn as_slice(&self) -> &[Self::Item];
+    fn as_slice(&self) -> &[Self::Elem];
 
     /// Yields mutable slice from generic
-    fn as_mut_slice(&mut self) -> &mut [Self::Item];
+    fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
 
 impl<T> const AsSlice for [T]
 {
-    type Item = T;
+    type Elem = T;
 
-    fn as_slice(&self) -> &[Self::Item]
+    fn as_slice(&self) -> &[Self::Elem]
     {
         self
     }
 
-    fn as_mut_slice(&mut self) -> &mut [Self::Item]
+    fn as_mut_slice(&mut self) -> &mut [Self::Elem]
     {
         self
     }
@@ -28,14 +28,14 @@ impl<T> const AsSlice for [T]
 
 impl<T, const N: usize> const AsSlice for [T; N]
 {
-    type Item = T;
+    type Elem = T;
 
-    fn as_slice(&self) -> &[Self::Item]
+    fn as_slice(&self) -> &[Self::Elem]
     {
         self.as_slice()
     }
 
-    fn as_mut_slice(&mut self) -> &mut [Self::Item]
+    fn as_mut_slice(&mut self) -> &mut [Self::Elem]
     {
         self.as_mut_slice()
     }
@@ -46,14 +46,14 @@ impl<T, A> const AsSlice for alloc::vec::Vec<T, A>
 where
     A: core::alloc::Allocator
 {
-    type Item = T;
+    type Elem = T;
 
-    fn as_slice(&self) -> &[Self::Item]
+    fn as_slice(&self) -> &[Self::Elem]
     {
         self.as_slice()
     }
 
-    fn as_mut_slice(&mut self) -> &mut [Self::Item]
+    fn as_mut_slice(&mut self) -> &mut [Self::Elem]
     {
         self.as_mut_slice()
     }
@@ -65,14 +65,14 @@ where
     A: core::alloc::Allocator,
     T: ~const AsSlice + ?Sized
 {
-    type Item = T::Item;
+    type Elem = T::Elem;
 
-    fn as_slice(&self) -> &[Self::Item]
+    fn as_slice(&self) -> &[Self::Elem]
     {
         (**self).as_slice()
     }
 
-    fn as_mut_slice(&mut self) -> &mut [Self::Item]
+    fn as_mut_slice(&mut self) -> &mut [Self::Elem]
     {
         (**self).as_mut_slice()
     }
