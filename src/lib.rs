@@ -1,10 +1,7 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
-#![feature(const_deref)]
-#![feature(const_array_as_mut_slice)]
 #![feature(allocator_api)]
-#![cfg_attr(feature = "alloc", feature(const_vec_string_slice))]
 
 //! A trait for any slice, with item as an associated type.
 //!

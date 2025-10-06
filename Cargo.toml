@@ -15,4 +15,4 @@ default = ["alloc"]
 alloc = []
 
 [dependencies]
-moddef = "0.2.6"
+moddef = "0.3.0"
