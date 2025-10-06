@@ -2,6 +2,7 @@
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
 #![feature(allocator_api)]
+#![feature(ptr_metadata)]
 
 //! A trait for any slice, with item as an associated type.
 //!
@@ -49,7 +50,7 @@ mod test
     {
         const A: &[i32] = [1, 2, 3].as_slice();
 
-        const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Elem>
+        const fn first<'a, S: [const] Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Elem>
         where
             S::Elem: Copy
         {

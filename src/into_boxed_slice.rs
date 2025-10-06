@@ -18,7 +18,7 @@ impl<T, const N: usize> IntoBoxedSlice for [T; N]
         let ptr = boxed.as_mut_ptr();
         core::mem::forget(boxed);
         unsafe {
-            Box::from_raw_in(core::slice::from_raw_parts_mut(ptr, N), Global)
+            Box::from_raw_in(core::ptr::from_raw_parts_mut(ptr, N), Global)
         }
     }
 }
@@ -41,7 +41,7 @@ impl<T> /*const*/ IntoBoxedSlice for Vec<T>
         assert_eq!(len, cap, "Memory leak detected");
 
         unsafe {
-            Box::from_raw_in(core::slice::from_raw_parts_mut(ptr, len), alloc)
+            Box::from_raw_in(core::ptr::from_raw_parts_mut(ptr, len), alloc)
         }
     }
 }
