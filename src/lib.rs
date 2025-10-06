@@ -17,9 +17,9 @@
 //!
 //! const A: &[i32] = [1, 2, 3].as_slice();
 //!
-//! const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Item>
+//! const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Elem>
 //! where
-//!     S::Item: Copy,
+//!     S::Elem: Copy,
 //! {
 //!     slice.as_slice().first()
 //! }
