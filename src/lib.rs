@@ -1,8 +1,8 @@
 #![cfg_attr(not(test), no_std)]
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
-#![feature(allocator_api)]
 #![feature(ptr_metadata)]
+#![cfg_attr(feature = "alloc", feature(allocator_api))]
 
 //! A trait for any slice, with item as an associated type.
 //!

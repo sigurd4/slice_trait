@@ -1,4 +1,4 @@
-use core::ops::{DerefMut, Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive};
+use core::{ops::{DerefMut, Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive}, ptr::Pointee};
 
 /// Prerequesites for a slice of `T`
 pub trait SlicePrereq<T> = ?Sized
@@ -15,7 +15,8 @@ pub trait SlicePrereq<T> = ?Sized
     + /* ~const */
     IndexMut<RangeToInclusive<usize>, Output = <[T] as Index<RangeToInclusive<usize>>>::Output>
     + /* ~const */
-    IndexMut<RangeFull, Output = <[T] as Index<RangeFull>>::Output>;
+    IndexMut<RangeFull, Output = <[T] as Index<RangeFull>>::Output>
+    + Pointee<Metadata = usize>;
 
 /// Prerequesites for a boxed slice of `T`
 pub trait BoxedSlicePrereq<T> = Sized
