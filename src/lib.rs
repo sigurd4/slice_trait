@@ -2,6 +2,8 @@
 #![feature(trait_alias)]
 #![feature(const_trait_impl)]
 #![feature(ptr_metadata)]
+#![feature(const_index)]
+#![feature(const_convert)]
 #![cfg_attr(feature = "alloc", feature(allocator_api))]
 
 //! A trait for any slice, with item as an associated type.
@@ -34,7 +36,6 @@ moddef::moddef!(
     flat(pub) mod {
         as_slice,
         into_boxed_slice for cfg(feature = "alloc"),
-        prereq,
         slice,
         boxed_slice for cfg(feature = "alloc")
     }

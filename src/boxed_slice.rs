@@ -1,10 +1,12 @@
-use crate::{private, AsSlice, BoxedSlicePrereq, IntoBoxedSlice};
+use core::ops::DerefMut;
+
+use crate::{private, AsSlice, IntoBoxedSlice};
 
 use alloc::boxed::Box;
 
 /// A trait for a boxed slice `[Self::Elem]`
 #[const_trait]
-pub trait BoxedSlice: private::BoxedSlice + BoxedSlicePrereq<<Self as AsSlice>::Elem> + ~const IntoBoxedSlice
+pub trait BoxedSlice: private::BoxedSlice + /*~const*/ DerefMut<Target = [<Self as AsSlice>::Elem]> + ~const IntoBoxedSlice
 {
     
 }
