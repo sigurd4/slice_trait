@@ -1,10 +1,10 @@
-use core::ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive};
+use core::{ops::{Index, IndexMut, Range, RangeFrom, RangeFull, RangeInclusive, RangeTo, RangeToInclusive}, ptr::Pointee};
 
 use crate::{private, AsSlice};
 
 /// A trait for a slice `[Self::Elem]`
 #[const_trait]
-pub trait Slice: private::Slice + ~const AsSlice
+pub trait Slice: private::Slice + ~const AsSlice + Pointee<Metadata = usize>
     + ~const IndexMut<usize, Output = <[<Self as AsSlice>::Elem] as Index<usize>>::Output>
     + ~const IndexMut<Range<usize>, Output = <[<Self as AsSlice>::Elem] as Index<Range<usize>>>::Output>
     + ~const IndexMut<RangeInclusive<usize>, Output = <[<Self as AsSlice>::Elem] as Index<RangeInclusive<usize>>>::Output>
