@@ -38,6 +38,10 @@ moddef::moddef!(
         into_boxed_slice for cfg(feature = "alloc"),
         slice,
         boxed_slice for cfg(feature = "alloc")
+    },
+    pub mod {
+        same for cfg(feature = "same"),
+        length for cfg(feature = "length")
     }
 );
 

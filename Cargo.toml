@@ -13,6 +13,8 @@ repository = "https://github.com/sigurd4/slice_trait"
 [features]
 default = ["alloc"]
 alloc = []
+length = ["same"]
+same = []
 
 [dependencies]
 moddef = "0.3.0"
