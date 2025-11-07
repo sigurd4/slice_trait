@@ -1,6 +1,6 @@
 [package]
 name = "slice_trait"
-version = "0.3.6"
+version = "0.3.7"
 edition = "2024"
 license = "MIT"
 keywords = ["slice", "generic", "trait"]
