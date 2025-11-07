@@ -98,12 +98,6 @@ pub mod value
 
     pub type Length<T, U> = <T as LengthValue>::Length<U>;
 
-    pub const fn or_len_metadata<T>(n: usize) -> T
-    where
-        T: LengthValue
-    {
-        <T as private::LengthValue>::or_len_metadata(n)
-    }
     pub const fn from_metadata<T>(n: T::Metadata) -> T
     where
         T: LengthValue
@@ -116,11 +110,23 @@ pub mod value
     {
         <T as private::LengthValue>::into_metadata(len)
     }
-    pub const fn len_metadata<T>(len: T) -> usize
+    pub const fn or_len<T>(n: usize) -> T
     where
         T: LengthValue
     {
-        <T as private::LengthValue>::len_metadata(len)
+        <T as private::LengthValue>::or_len(n)
+    }
+    pub const fn len<T>(len: T) -> usize
+    where
+        T: LengthValue
+    {
+        <T as private::LengthValue>::len(len)
+    }
+    pub const fn len_metadata<T>(len: T::Metadata) -> usize
+    where
+        T: LengthValue
+    {
+        self::len(from_metadata::<T>(len))
     }
 
     op!(Min::min 2);
@@ -146,11 +152,23 @@ where
 {
     core::ptr::metadata(len)
 }
-pub const fn len_metadata<T>(len: &T) -> usize
+pub const fn as_value<T>(len: &T) -> T::Value
 where
     T: Length
 {
-    value::len_metadata(value::from_metadata::<T::Value>(as_metadata(len)))
+    value::from_metadata(as_metadata(len))
+}
+pub const fn len<T>(len: &T) -> usize
+where
+    T: Length
+{
+    value::len(as_value(len))
+}
+pub const fn len_metadata<T>(metadata: T::Metadata) -> usize
+where
+    T: Length
+{
+    value::len_metadata::<T::Value>(metadata)
 }
 
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
@@ -212,7 +230,7 @@ mod private
 
                 default fn $fn(x: Self) -> Self::Output
                 {
-                    let $x = L::len_metadata(x);
+                    let $x = L::len(x);
                     $expr.same().ok().unwrap()
                 }
             }
@@ -250,8 +268,8 @@ mod private
 
                 default fn $fn(lhs: Self, rhs: R) -> Self::Output
                 {
-                    let $lhs = L::len_metadata(lhs);
-                    let $rhs = R::len_metadata(rhs);
+                    let $lhs = L::len(lhs);
+                    let $rhs = R::len(rhs);
                     $expr.same().ok().unwrap()
                 }
             }
@@ -313,17 +331,17 @@ mod private
         #[doc(hidden)]
         type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
         
-        fn or_len_metadata(n: usize) -> Self;
+        fn or_len(n: usize) -> Self;
         fn from_metadata(n: Self::_Metadata) -> Self;
         fn into_metadata(len: Self) -> Self::_Metadata;
-        fn len_metadata(len: Self) -> usize;
+        fn len(len: Self) -> usize;
     }
     impl const LengthValue for usize
     {
         type _Length<T> = [T];
         type _Metadata = usize;
 
-        fn or_len_metadata(n: usize) -> Self
+        fn or_len(n: usize) -> Self
         {
             n
         }
@@ -335,7 +353,7 @@ mod private
         {
             len
         }
-        fn len_metadata(len: Self) -> usize
+        fn len(len: Self) -> usize
         {
             len
         }
@@ -345,7 +363,7 @@ mod private
         type _Length<T> = [T; N];
         type _Metadata = ();
 
-        fn or_len_metadata(_: usize) -> Self
+        fn or_len(_: usize) -> Self
         {
             [(); N]
         }
@@ -357,7 +375,7 @@ mod private
         {
             
         }
-        fn len_metadata(_len: Self) -> usize
+        fn len(_len: Self) -> usize
         {
             N
         }
