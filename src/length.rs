@@ -1,408 +1,325 @@
+use core::{fmt, hash::Hash, marker::Freeze};
 
+macro_rules! op {
+    ($trait:ident 1) => {
+        type $trait: LengthValue = <Self as private::${concat(Length, $trait)}>::Output;
+    };
+    ($trait:ident 2) => {
+        type $trait<Rhs: LengthValue>: LengthValue = <Self as private::${concat(Length, $trait)}<Rhs>>::Output;
+    };
+    ($trait:ident [1]) => {
+        type $trait: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value>, Self::Elem>;
+    };
+    ($trait:ident [2]) => {
+        type $trait<Rhs: Length<Elem = Self::Elem>>: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value, Rhs::Value>, Self::Elem>;
+    };
+    ($trait:ident::$fn:ident 1) => {
+        pub type $trait<X> = <X as LengthValue>::$trait;
+        pub const fn $fn<X>(x: X) -> $trait<X>
+        where
+            X: LengthValue
+        {
+            <X as private::${concat(Length, $trait)}>::$fn(x)
+        }
+    };
+    ($trait:ident::$fn:ident 2) => {
+        pub type $trait<Lhs, Rhs> = <Lhs as LengthValue>::$trait<Rhs>;
+        pub const fn $fn<Lhs, Rhs>(lhs: Lhs, rhs: Rhs) -> $trait<Lhs, Rhs>
+        where
+            Lhs: LengthValue,
+            Rhs: LengthValue
+        {
+            <Lhs as private::${concat(Length, $trait)}<Rhs>>::$fn(lhs, rhs)
+        }
+    };
+    (pub $trait:ident [1]) => {
+        pub type $trait<X> = <X as Length>::$trait;
+    };
+    (pub $trait:ident [2]) => {
+        pub type $trait<Lhs, Rhs> = <Lhs as Length>::$trait<Rhs>;
+    };
+}
+
+#[rustc_on_unimplemented(
+    message = "`{Self}` is not a valid bulk length",
+    label = "The only valid lengths are `[_]` or `[_; _]`",
+)]
+pub trait Length: private::Length<_Value: LengthValue>
+{
+    type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata>;
+    type Mapped<U>: Length<Elem = U, Value = Self::Value, _Value = Self::Value, Metadata = Self::Metadata> + ?Sized = value::Length<Self::Value, U>;
+
+    op!(Min [2]);
+    op!(Max [2]);
+    op!(Add [2]);
+    op!(Sub [2]);
+    op!(Mul [2]);
+    op!(Div [2]);
+    op!(Rem [2]);
+    op!(SaturatingAdd [2]);
+    op!(SaturatingSub [2]);
+    op!(SaturatingMul [2]);
+    op!(SaturatingDiv [2]);
+    op!(DivCeil [2]);
+    op!(DivFloor [2]);
+    op!(Windowed [2]);
+    op!(Interspersed [1]);
+}
+impl<T> Length for T
+where
+    T: private::Length + ?Sized
+{
+    type Value = Self::_Value;
+}
+
+op!(pub Min [2]);
+op!(pub Max [2]);
+op!(pub Add [2]);
+op!(pub Sub [2]);
+op!(pub Mul [2]);
+op!(pub Div [2]);
+op!(pub Rem [2]);
+op!(pub SaturatingAdd [2]);
+op!(pub SaturatingSub [2]);
+op!(pub SaturatingMul [2]);
+op!(pub SaturatingDiv [2]);
+op!(pub DivCeil [2]);
+op!(pub DivFloor [2]);
+op!(pub Windowed [2]);
+op!(pub Interspersed [1]);
+
+pub use crate::Elem;
+pub type Value<T> = <T as Length>::Value;
+pub type Mapped<T, U> = <T as Length>::Mapped<U>;
+
+pub mod value
+{
+    use super::*;
+
+    pub type Length<T, U> = <T as LengthValue>::Length<U>;
+
+    op!(Min::min 2);
+    op!(Max::max 2);
+    op!(Add::add 2);
+    op!(Sub::sub 2);
+    op!(Mul::mul 2);
+    op!(Div::div 2);
+    op!(Rem::rem 2);
+    op!(SaturatingAdd::saturating_add 2);
+    op!(SaturatingSub::saturating_sub 2);
+    op!(SaturatingMul::saturating_mul 2);
+    op!(SaturatingDiv::saturating_div 2);
+    op!(DivCeil::div_ceil 2);
+    op!(DivFloor::div_floor 2);
+    op!(Windowed::windowed 2);
+    op!(Interspersed::interspersed 1);
+}
+
+pub trait LengthValue: const private::LengthValue
+{
+    type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
+    type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
+
+    op!(Min 2);
+    op!(Max 2);
+    op!(Add 2);
+    op!(Sub 2);
+    op!(Mul 2);
+    op!(Div 2);
+    op!(Rem 2);
+    op!(SaturatingAdd 2);
+    op!(SaturatingSub 2);
+    op!(SaturatingMul 2);
+    op!(SaturatingDiv 2);
+    op!(DivCeil 2);
+    op!(DivFloor 2);
+    op!(Windowed 2);
+    op!(Interspersed 1);
+}
+impl<T> LengthValue for T
+where
+    T: const private::LengthValue
+{
+    type Length<U> = Self::_Length<U>;
+    type Metadata = Self::_Metadata;
+}
 
 mod private
 {
+    use core::fmt;
+    use core::hash::Hash;
+    use core::marker::Freeze;
     use core::{marker::Destruct, ptr::Pointee};
 
     use crate::AsSlice;
+
+    use crate::same::Same;
+
+    macro_rules! op {
+        ($trait:ident::$fn:ident($x:ident) $expr:expr) => {
+            pub const trait ${concat(Length, $trait)}: const LengthValue
+            {
+                type Output: const LengthValue;
+
+                fn $fn(x: Self) -> <Self as super::LengthValue>::$trait;
+            }
+            impl<L> const ${concat(Length, $trait)} for L
+            where
+                L: const LengthValue
+            {
+                default type Output = usize;
+
+                default fn $fn(x: Self) -> Self::Output
+                {
+                    let $x = L::len_metadata(x);
+                    $expr.same().ok().unwrap()
+                }
+            }
+            #[allow(non_upper_case_globals)]
+            impl<const $x: usize> const ${concat(Length, $trait)} for [(); $x]
+            where
+                [(); $expr]:
+            {
+                type Output = [(); $expr];
+
+                fn $fn(_: Self) -> Self::Output
+                {
+                    [(); $expr]
+                }
+            }
+        };
+        ($trait:ident::$fn:ident($lhs:ident, $rhs:ident) $expr:expr) => {
+            pub const trait ${concat(Length, $trait)}<R>: const LengthValue
+            where
+                R: const LengthValue
+            {
+                type Output: const LengthValue;
+
+                fn $fn(lhs: Self, rhs: R) -> <Self as super::LengthValue>::$trait<R>;
+            }
+            impl<L, R> const ${concat(Length, $trait)}<R> for L
+            where
+                L: const LengthValue,
+                R: const LengthValue
+            {
+                default type Output = usize;
+
+                default fn $fn(lhs: Self, rhs: R) -> Self::Output
+                {
+                    let $lhs = L::len_metadata(lhs);
+                    let $rhs = R::len_metadata(rhs);
+                    $expr.same().ok().unwrap()
+                }
+            }
+            #[allow(non_upper_case_globals)]
+            impl<const $lhs: usize, const $rhs: usize> const ${concat(Length, $trait)}<[(); $rhs]> for [(); $lhs]
+            where
+                [(); $expr]:
+            {
+                type Output = [(); $expr];
+
+                fn $fn(_: Self, _: [(); $rhs]) -> Self::Output
+                {
+                    [(); $expr]
+                }
+            }
+        };
+    }
 
     #[rustc_on_unimplemented(
         message = "`{Self}` is not a valid bulk length",
         label = "The only valid lengths are `[_]` or `[_; _]`",
     )]
-    pub const trait Length: AsSlice
+    pub trait Length: AsSlice + Pointee
     {
-        type LengthSpec: const LengthSpec<Length<Self::Elem> = Self, Metadata = <Self as Pointee>::Metadata>;
-
-        fn len_metadata(n: <Self as Pointee>::Metadata) -> usize;
+        type _Value: const LengthValue<_Length<Self::Elem> = Self, _Metadata = Self::Metadata>;
     }
-    impl<T> const Length for [T]
+    impl<T> Length for [T]
     {
-        type LengthSpec = usize;
-
-        fn len_metadata(n: <Self as Pointee>::Metadata) -> usize
-        {
-            n
-        }
+        type _Value = usize;
     }
-    impl<T, const N: usize> const Length for [T; N]
+    impl<T, const N: usize> Length for [T; N]
     {
-        type LengthSpec = [(); N];
-
-        fn len_metadata((): <Self as Pointee>::Metadata) -> usize
-        {
-            N
-        }
+        type _Value = [(); N];
     }
 
-    pub const trait LengthSpec: Copy + const Destruct
+    op!(Min::min(a, b) Ord::min(a, b));
+    op!(Max::max(a, b) Ord::max(a, b));
+    op!(Add::add(a, b) a + b);
+    op!(Sub::sub(a, b) a - b);
+    op!(Mul::mul(a, b) a*b);
+    op!(Div::div(a, b) a/b);
+    op!(Rem::rem(a, b) a % b);
+    op!(SaturatingAdd::saturating_add(a, b) a.saturating_add(b));
+    op!(SaturatingSub::saturating_sub(a, b) a.saturating_sub(b));
+    op!(SaturatingMul::saturating_mul(a, b) a.saturating_mul(b));
+    op!(SaturatingDiv::saturating_div(a, b) a.saturating_div(b));
+    op!(DivCeil::div_ceil(a, b) a.div_ceil(b));
+    op!(DivFloor::div_floor(a, b) a.div_floor(b));
+    op!(Windowed::windowed(a, b) a.saturating_sub(b - 1));
+    op!(Interspersed::interspersed(a) a + a.saturating_sub(1));
+
+    pub const trait LengthValue: Copy + const Destruct
     {
-        type Length<T>: const Length<Elem = T, LengthSpec = Self> + Pointee<Metadata = Self::Metadata> + ?Sized;
-        type Metadata: Copy + const Default;
+        type _Length<T>: Length<Elem = T, _Value = Self, Metadata = Self::_Metadata> + ?Sized;
+        type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
         
         fn or_len_metadata(n: usize) -> Self;
-        fn from_metadata(n: Self::Metadata) -> Self;
-        fn into_metadata(self) -> Self::Metadata;
-        fn len_metadata(self) -> usize;
+        fn from_metadata(n: Self::_Metadata) -> Self;
+        fn into_metadata(len: Self) -> Self::_Metadata;
+        fn len_metadata(len: Self) -> usize;
     }
-    impl const LengthSpec for usize
+    impl const LengthValue for usize
     {
-        type Length<T> = [T];
-        type Metadata = usize;
+        type _Length<T> = [T];
+        type _Metadata = usize;
 
         fn or_len_metadata(n: usize) -> Self
         {
             n
         }
-        fn from_metadata(n: Self::Metadata) -> Self
+        fn from_metadata(n: Self::_Metadata) -> Self
         {
             n
         }
-        fn into_metadata(self) -> Self::Metadata
+        fn into_metadata(len: Self) -> Self::_Metadata
         {
-            self
+            len
         }
-        fn len_metadata(self) -> usize
+        fn len_metadata(len: Self) -> usize
         {
-            self
+            len
         }
     }
-    impl<const N: usize> const LengthSpec for [(); N]
+    impl<const N: usize> const LengthValue for [(); N]
     {
-        type Length<T> = [T; N];
-        type Metadata = ();
+        type _Length<T> = [T; N];
+        type _Metadata = ();
 
         fn or_len_metadata(_: usize) -> Self
         {
             [(); N]
         }
-        fn from_metadata((): Self::Metadata) -> Self
+        fn from_metadata((): Self::_Metadata) -> Self
         {
             [(); N]
         }
-        fn into_metadata(self) -> Self::Metadata
+        fn into_metadata(_len: Self) -> Self::_Metadata
         {
             
         }
-        fn len_metadata(self) -> usize
+        fn len_metadata(_len: Self) -> usize
         {
             N
         }
     }
+}
 
-    pub const trait LengthMin<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthMin: LengthSpec;
+#[cfg(test)]
+mod test
+{
+    use crate::length::Sub;
 
-        fn len_min(self, other: R) -> Self::LengthMin;
-    }
-    impl<L, R> const LengthMin<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthMin = usize;
-
-        default fn len_min(self, other: R) -> Self::LengthMin
-        {
-            self.len_metadata().min(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthMin<[(); N]> for [(); M]
-    where
-        [(); M.min(N)]:
-    {
-        type LengthMin = [(); M.min(N)];
-
-        fn len_min(self, _: [(); N]) -> Self::LengthMin
-        {
-            [(); M.min(N)]
-        }
-    }
-
-    pub const trait LengthMax<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthMax: LengthSpec;
-
-        fn len_max(self, other: R) -> Self::LengthMax;
-    }
-    impl<L, R> const LengthMax<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthMax = usize;
-
-        default fn len_max(self, other: R) -> Self::LengthMax
-        {
-            self.len_metadata().max(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthMax<[(); N]> for [(); M]
-    where
-        [(); M.max(N)]:
-    {
-        type LengthMax = [(); M.max(N)];
-
-        fn len_max(self, _: [(); N]) -> Self::LengthMax
-        {
-            [(); M.max(N)]
-        }
-    }
-
-    pub const trait LengthSatAdd<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthSatAdd: LengthSpec;
-
-        fn len_sat_add(self, other: R) -> Self::LengthSatAdd;
-    }
-    impl<L, R> const LengthSatAdd<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthSatAdd = usize;
-
-        default fn len_sat_add(self, other: R) -> Self::LengthSatAdd
-        {
-            self.len_metadata().saturating_add(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthSatAdd<[(); N]> for [(); M]
-    where
-        [(); M.saturating_add(N)]:
-    {
-        type LengthSatAdd = [(); M.saturating_add(N)];
-
-        fn len_sat_add(self, _: [(); N]) -> Self::LengthSatAdd
-        {
-            [(); M.saturating_add(N)]
-        }
-    }
-
-    pub const trait LengthSatSub<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthSatSub: LengthSpec;
-
-        fn len_sat_sub(self, other: R) -> Self::LengthSatSub;
-    }
-    impl<L, R> const LengthSatSub<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthSatSub = usize;
-
-        default fn len_sat_sub(self, other: R) -> Self::LengthSatSub
-        {
-            self.len_metadata().saturating_sub(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthSatSub<[(); N]> for [(); M]
-    where
-        [(); M.saturating_sub(N)]:
-    {
-        type LengthSatSub = [(); M.saturating_sub(N)];
-
-        fn len_sat_sub(self, _: [(); N]) -> Self::LengthSatSub
-        {
-            [(); M.saturating_sub(N)]
-        }
-    }
-
-    pub const trait LengthSatMul<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthSatMul: LengthSpec;
-
-        fn len_sat_mul(self, other: R) -> Self::LengthSatMul;
-    }
-    impl<L, R> const LengthSatMul<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthSatMul = usize;
-
-        default fn len_sat_mul(self, other: R) -> Self::LengthSatMul
-        {
-            self.len_metadata().saturating_mul(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthSatMul<[(); N]> for [(); M]
-    where
-        [(); M.saturating_mul(N)]:
-    {
-        type LengthSatMul = [(); M.saturating_mul(N)];
-
-        fn len_sat_mul(self, _: [(); N]) -> Self::LengthSatMul
-        {
-            [(); M.saturating_mul(N)]
-        }
-    }
-
-    pub const trait LengthMul<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthMul: LengthSpec;
-
-        fn len_mul(self, other: R) -> Self::LengthMul;
-    }
-    impl<L, R> const LengthMul<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthMul = usize;
-
-        default fn len_mul(self, other: R) -> Self::LengthMul
-        {
-            (self.len_metadata()*other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthMul<[(); N]> for [(); M]
-    where
-        [(); M*N]:
-    {
-        type LengthMul = [(); M*N];
-
-        fn len_mul(self, _: [(); N]) -> Self::LengthMul
-        {
-            [(); M*N]
-        }
-    }
-
-    pub const trait LengthDivCeil<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthDivCeil: LengthSpec;
-
-        fn len_div_ceil(self, other: R) -> Self::LengthDivCeil;
-    }
-    impl<L, R> const LengthDivCeil<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthDivCeil = usize;
-
-        default fn len_div_ceil(self, other: R) -> Self::LengthDivCeil
-        {
-            self.len_metadata().div_ceil(other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthDivCeil<[(); N]> for [(); M]
-    where
-        [(); M.div_ceil(N)]:
-    {
-        type LengthDivCeil = [(); M.div_ceil(N)];
-
-        fn len_div_ceil(self, _: [(); N]) -> Self::LengthDivCeil
-        {
-            [(); M.div_ceil(N)]
-        }
-    }
-
-    pub const trait LengthDiv<R>: LengthSpec
-    where
-        R: LengthSpec
-    {
-        type LengthDiv: LengthSpec;
-
-        fn len_div(self, other: R) -> Self::LengthDiv;
-    }
-    impl<L, R> const LengthDiv<R> for L
-    where
-        L: ~const LengthSpec,
-        R: ~const LengthSpec
-    {
-        default type LengthDiv = usize;
-
-        default fn len_div(self, other: R) -> Self::LengthDiv
-        {
-            (self.len_metadata()/other.len_metadata()).same().ok().unwrap()
-        }
-    }
-    impl<const M: usize, const N: usize> const LengthDiv<[(); N]> for [(); M]
-    where
-        [(); M/N]:
-    {
-        type LengthDiv = [(); M/N];
-
-        fn len_div(self, _: [(); N]) -> Self::LengthDiv
-        {
-            [(); M/N]
-        }
-    }
-
-    pub const trait LengthInterspersed: LengthSpec
-    {
-        type LengthInterspersed: LengthSpec;
-
-        fn len_interspersed(self) -> Self::LengthInterspersed;
-    }
-    impl<L> const LengthInterspersed for L
-    where
-        L: ~const LengthSpec
-    {
-        default type LengthInterspersed = usize;
-
-        default fn len_interspersed(self) -> Self::LengthInterspersed
-        {
-            let n = self.len_metadata();
-            (n + n.saturating_sub(1)).same().ok().unwrap()
-        }
-    }
-    impl<const N: usize> const LengthInterspersed for [(); N]
-    where
-        [(); N + N.saturating_sub(1)]:
-    {
-        type LengthInterspersed = [(); N + N.saturating_sub(1)];
-
-        fn len_interspersed(self) -> Self::LengthInterspersed
-        {
-            [(); N + N.saturating_sub(1)]
-        }
-    }
-
-    pub const trait LengthWindowed<const N: usize>: LengthSpec
-    {
-        type LengthWindowed: LengthSpec;
-
-        fn len_interspersed(self) -> Self::LengthWindowed;
-    }
-    impl<L, const N: usize> const LengthWindowed<N> for L
-    where
-        L: ~const LengthSpec
-    {
-        default type LengthWindowed = usize;
-
-        default fn len_interspersed(self) -> Self::LengthWindowed
-        {
-            let m = self.len_metadata();
-            m.saturating_sub(N - 1).same().ok().unwrap()
-        }
-    }
-    impl<const N: usize, const M: usize> const LengthWindowed<N> for [(); M]
-    where
-        [(); M.saturating_sub(N - 1)]:
-    {
-        type LengthWindowed = [(); M.saturating_sub(N - 1)];
-
-        fn len_interspersed(self) -> Self::LengthWindowed
-        {
-            [(); M.saturating_sub(N - 1)]
-        }
-    }
+    #[allow(unused)]
+    const TEST: Sub<[(); 5], [(); 2]> = [(), (), ()];
 }

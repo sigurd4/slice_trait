@@ -4,6 +4,17 @@
 #![feature(ptr_metadata)]
 #![feature(const_index)]
 #![feature(const_convert)]
+#![cfg_attr(feature = "length", feature(associated_type_defaults))]
+#![cfg_attr(feature = "length", feature(int_roundings))]
+#![cfg_attr(feature = "length", feature(macro_metavar_expr_concat))]
+#![cfg_attr(feature = "length", feature(freeze))]
+#![cfg_attr(feature = "length", feature(generic_const_exprs))]
+#![cfg_attr(feature = "length", feature(const_result_trait_fn))]
+#![cfg_attr(feature = "length", feature(const_cmp))]
+#![cfg_attr(feature = "length", feature(const_default))]
+#![cfg_attr(feature = "length", feature(rustc_attrs))]
+#![cfg_attr(feature = "length", feature(const_destruct))]
+#![cfg_attr(feature = "same", feature(specialization))]
 #![cfg_attr(feature = "alloc", feature(allocator_api))]
 
 //! A trait for any slice, with item as an associated type.
@@ -34,6 +45,7 @@ extern crate alloc;
 
 moddef::moddef!(
     flat(pub) mod {
+        elem,
         as_slice,
         into_boxed_slice for cfg(feature = "alloc"),
         slice,
