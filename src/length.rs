@@ -44,7 +44,7 @@ macro_rules! op {
     message = "`{Self}` is not a valid bulk length",
     label = "The only valid lengths are `[_]` or `[_; _]`",
 )]
-pub trait Length: private::Length<_Value: LengthValue>
+pub trait Length: private::Length<_Value = Self::Value>
 {
     type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata>;
     type Mapped<U>: Length<Elem = U, Value = Self::Value, _Value = Self::Value, Metadata = Self::Metadata> + ?Sized = value::Length<Self::Value, U>;
