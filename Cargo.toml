@@ -11,7 +11,7 @@ repository = "https://github.com/sigurd4/slice_trait"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [features]
-default = ["alloc", "length"]
+default = ["alloc"]
 alloc = []
 length = ["same"]
 same = []
