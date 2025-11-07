@@ -148,25 +148,25 @@ pub mod value
 
 pub const fn as_metadata<T>(len: &T) -> T::Metadata
 where
-    T: Length
+    T: Length + ?Sized
 {
     core::ptr::metadata(len)
 }
 pub const fn as_value<T>(len: &T) -> T::Value
 where
-    T: Length
+    T: Length + ?Sized
 {
     value::from_metadata(as_metadata(len))
 }
 pub const fn len<T>(len: &T) -> usize
 where
-    T: Length
+    T: Length + ?Sized
 {
     value::len(as_value(len))
 }
 pub const fn len_metadata<T>(metadata: T::Metadata) -> usize
 where
-    T: Length
+    T: Length + ?Sized
 {
     value::len_metadata::<T::Value>(metadata)
 }
