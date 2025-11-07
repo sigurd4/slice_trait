@@ -98,6 +98,31 @@ pub mod value
 
     pub type Length<T, U> = <T as LengthValue>::Length<U>;
 
+    pub const fn or_len_metadata<T>(n: usize) -> T
+    where
+        T: LengthValue
+    {
+        <T as private::LengthValue>::or_len_metadata(n)
+    }
+    pub const fn from_metadata<T>(n: T::Metadata) -> T
+    where
+        T: LengthValue
+    {
+        <T as private::LengthValue>::from_metadata(n)
+    }
+    pub const fn into_metadata<T>(len: T) -> T::Metadata
+    where
+        T: LengthValue
+    {
+        <T as private::LengthValue>::into_metadata(len)
+    }
+    pub const fn len_metadata<T>(len: T) -> usize
+    where
+        T: LengthValue
+    {
+        <T as private::LengthValue>::len_metadata(len)
+    }
+
     op!(Min::min 2);
     op!(Max::max 2);
     op!(Add::add 2);
@@ -115,7 +140,7 @@ pub mod value
     op!(Interspersed::interspersed 1);
 }
 
-pub trait LengthValue: const private::LengthValue
+pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
     type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
     type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
@@ -140,8 +165,8 @@ impl<T> LengthValue for T
 where
     T: const private::LengthValue
 {
-    type Length<U> = Self::_Length<U>;
-    type Metadata = Self::_Metadata;
+    type Length<U> = <Self as private::LengthValue>::_Length<U>;
+    type Metadata = <Self as private::LengthValue>::_Metadata;
 }
 
 mod private
@@ -157,10 +182,13 @@ mod private
 
     macro_rules! op {
         ($trait:ident::$fn:ident($x:ident) $expr:expr) => {
+            #[doc(hidden)]
             pub const trait ${concat(Length, $trait)}: const LengthValue
             {
+                #[doc(hidden)]
                 type Output: const LengthValue;
 
+                #[doc(hidden)]
                 fn $fn(x: Self) -> <Self as super::LengthValue>::$trait;
             }
             impl<L> const ${concat(Length, $trait)} for L
@@ -189,12 +217,15 @@ mod private
             }
         };
         ($trait:ident::$fn:ident($lhs:ident, $rhs:ident) $expr:expr) => {
+            #[doc(hidden)]
             pub const trait ${concat(Length, $trait)}<R>: const LengthValue
             where
                 R: const LengthValue
             {
+                #[doc(hidden)]
                 type Output: const LengthValue;
 
+                #[doc(hidden)]
                 fn $fn(lhs: Self, rhs: R) -> <Self as super::LengthValue>::$trait<R>;
             }
             impl<L, R> const ${concat(Length, $trait)}<R> for L
@@ -226,12 +257,14 @@ mod private
         };
     }
 
+    #[doc(hidden)]
     #[rustc_on_unimplemented(
         message = "`{Self}` is not a valid bulk length",
         label = "The only valid lengths are `[_]` or `[_; _]`",
     )]
     pub trait Length: AsSlice + Pointee
     {
+        #[doc(hidden)]
         type _Value: const LengthValue<_Length<Self::Elem> = Self, _Metadata = Self::Metadata>;
     }
     impl<T> Length for [T]
@@ -259,9 +292,12 @@ mod private
     op!(Windowed::windowed(a, b) a.saturating_sub(b - 1));
     op!(Interspersed::interspersed(a) a + a.saturating_sub(1));
 
+    #[doc(hidden)]
     pub const trait LengthValue: Copy + const Destruct
     {
+        #[doc(hidden)]
         type _Length<T>: Length<Elem = T, _Value = Self, Metadata = Self::_Metadata> + ?Sized;
+        #[doc(hidden)]
         type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
         
         fn or_len_metadata(n: usize) -> Self;
