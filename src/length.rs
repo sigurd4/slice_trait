@@ -140,6 +140,19 @@ pub mod value
     op!(Interspersed::interspersed 1);
 }
 
+pub const fn as_metadata<T>(len: &T) -> T::Metadata
+where
+    T: Length
+{
+    core::ptr::metadata(len)
+}
+pub const fn len_metadata<T>(len: &T) -> usize
+where
+    T: Length
+{
+    value::len_metadata(value::from_metadata::<T::Value>(as_metadata(len)))
+}
+
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
     type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
