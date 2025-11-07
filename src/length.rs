@@ -11,7 +11,7 @@ macro_rules! op {
         type $trait: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value>, Self::Elem>;
     };
     ($trait:ident [2]) => {
-        type $trait<Rhs: Length<Elem = Self::Elem>>: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value, Rhs::Value>, Self::Elem>;
+        type $trait<Rhs: Length<Elem = Self::Elem> + ?Sized>: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value, Rhs::Value>, Self::Elem>;
     };
     ($trait:ident::$fn:ident 1) => {
         pub type $trait<X> = <X as LengthValue>::$trait;
