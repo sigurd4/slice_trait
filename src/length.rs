@@ -2,10 +2,10 @@ use core::{fmt, hash::Hash, marker::Freeze};
 
 macro_rules! op {
     ($trait:ident 1) => {
-        type $trait: LengthValue = <Self as private::${concat(Length, $trait)}>::Output;
+        type $trait: LengthValue = <Self as ops::${concat(Length, $trait)}>::Output;
     };
     ($trait:ident 2) => {
-        type $trait<Rhs: LengthValue>: LengthValue = <Self as private::${concat(Length, $trait)}<Rhs>>::Output;
+        type $trait<Rhs: LengthValue>: LengthValue = <Self as ops::${concat(Length, $trait)}<Rhs>>::Output;
     };
     ($trait:ident [1]) => {
         type $trait: Length<Elem = Self::Elem> + ?Sized = value::Length<value::$trait<Self::Value>, Self::Elem>;
@@ -19,7 +19,7 @@ macro_rules! op {
         where
             X: LengthValue
         {
-            <X as private::${concat(Length, $trait)}>::$fn(x)
+            <X as ops::${concat(Length, $trait)}>::$fn(x)
         }
     };
     ($trait:ident::$fn:ident 2) => {
@@ -29,7 +29,7 @@ macro_rules! op {
             Lhs: LengthValue,
             Rhs: LengthValue
         {
-            <Lhs as private::${concat(Length, $trait)}<Rhs>>::$fn(lhs, rhs)
+            <Lhs as ops::${concat(Length, $trait)}<Rhs>>::$fn(lhs, rhs)
         }
     };
     (pub $trait:ident [1]) => {
@@ -200,35 +200,30 @@ where
     type Metadata = <Self as private::LengthValue>::_Metadata;
 }
 
-mod private
+mod ops
 {
-    use core::fmt;
-    use core::hash::Hash;
-    use core::marker::Freeze;
-    use core::{marker::Destruct, ptr::Pointee};
-
-    use crate::AsSlice;
+    use super::*;
 
     use crate::same::Same;
 
     macro_rules! op {
         ($trait:ident::$fn:ident($x:ident) $expr:expr) => {
             #[doc(hidden)]
-            pub const trait ${concat(Length, $trait)}: const LengthValue
+            pub const trait ${concat(Length, $trait)}: LengthValue
             {
                 #[doc(hidden)]
-                type Output: const LengthValue;
+                type Output: LengthValue;
 
                 #[doc(hidden)]
                 fn $fn(x: Self) -> <Self as super::LengthValue>::$trait;
             }
             impl<L> const ${concat(Length, $trait)} for L
             where
-                L: const LengthValue
+                L: LengthValue
             {
                 default type Output = usize;
 
-                default fn $fn(x: Self) -> Self::Output
+                default fn $fn(x: Self) -> Self::$trait
                 {
                     let $x = L::len(x);
                     $expr.same().ok().unwrap()
@@ -249,24 +244,24 @@ mod private
         };
         ($trait:ident::$fn:ident($lhs:ident, $rhs:ident) $expr:expr) => {
             #[doc(hidden)]
-            pub const trait ${concat(Length, $trait)}<R>: const LengthValue
+            pub const trait ${concat(Length, $trait)}<R>: LengthValue
             where
-                R: const LengthValue
+                R: LengthValue
             {
                 #[doc(hidden)]
-                type Output: const LengthValue;
+                type Output: LengthValue;
 
                 #[doc(hidden)]
                 fn $fn(lhs: Self, rhs: R) -> <Self as super::LengthValue>::$trait<R>;
             }
             impl<L, R> const ${concat(Length, $trait)}<R> for L
             where
-                L: const LengthValue,
-                R: const LengthValue
+                L: LengthValue,
+                R: LengthValue
             {
                 default type Output = usize;
 
-                default fn $fn(lhs: Self, rhs: R) -> Self::Output
+                default fn $fn(lhs: Self, rhs: R) -> Self::$trait<R>
                 {
                     let $lhs = L::len(lhs);
                     let $rhs = R::len(rhs);
@@ -288,6 +283,32 @@ mod private
         };
     }
 
+    op!(Min::min(a, b) Ord::min(a, b));
+    op!(Max::max(a, b) Ord::max(a, b));
+    op!(Add::add(a, b) a + b);
+    op!(Sub::sub(a, b) a - b);
+    op!(Mul::mul(a, b) a*b);
+    op!(Div::div(a, b) a/b);
+    op!(Rem::rem(a, b) a % b);
+    op!(SaturatingAdd::saturating_add(a, b) a.saturating_add(b));
+    op!(SaturatingSub::saturating_sub(a, b) a.saturating_sub(b));
+    op!(SaturatingMul::saturating_mul(a, b) a.saturating_mul(b));
+    op!(SaturatingDiv::saturating_div(a, b) a.saturating_div(b));
+    op!(DivCeil::div_ceil(a, b) a.div_ceil(b));
+    op!(DivFloor::div_floor(a, b) a.div_floor(b));
+    op!(Windowed::windowed(a, b) a.saturating_sub(b - 1));
+    op!(Interspersed::interspersed(a) a + a.saturating_sub(1));
+}
+
+mod private
+{
+    use core::fmt;
+    use core::hash::Hash;
+    use core::marker::Freeze;
+    use core::{marker::Destruct, ptr::Pointee};
+
+    use crate::AsSlice;
+
     #[doc(hidden)]
     #[rustc_on_unimplemented(
         message = "`{Self}` is not a valid bulk length",
@@ -306,22 +327,6 @@ mod private
     {
         type _Value = [(); N];
     }
-
-    op!(Min::min(a, b) Ord::min(a, b));
-    op!(Max::max(a, b) Ord::max(a, b));
-    op!(Add::add(a, b) a + b);
-    op!(Sub::sub(a, b) a - b);
-    op!(Mul::mul(a, b) a*b);
-    op!(Div::div(a, b) a/b);
-    op!(Rem::rem(a, b) a % b);
-    op!(SaturatingAdd::saturating_add(a, b) a.saturating_add(b));
-    op!(SaturatingSub::saturating_sub(a, b) a.saturating_sub(b));
-    op!(SaturatingMul::saturating_mul(a, b) a.saturating_mul(b));
-    op!(SaturatingDiv::saturating_div(a, b) a.saturating_div(b));
-    op!(DivCeil::div_ceil(a, b) a.div_ceil(b));
-    op!(DivFloor::div_floor(a, b) a.div_floor(b));
-    op!(Windowed::windowed(a, b) a.saturating_sub(b - 1));
-    op!(Interspersed::interspersed(a) a + a.saturating_sub(1));
 
     #[doc(hidden)]
     pub const trait LengthValue: Copy + const Destruct
