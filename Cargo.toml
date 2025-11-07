@@ -1,6 +1,6 @@
 [package]
 name = "slice_trait"
-version = "0.3.4"
+version = "0.3.5"
 edition = "2024"
 license = "MIT"
 keywords = ["slice", "generic", "trait"]
@@ -13,7 +13,7 @@ repository = "https://github.com/sigurd4/slice_trait"
 [features]
 default = [
     "alloc",
-    "length"
+    #"length"
 ]
 alloc = []
 length = ["same"]
