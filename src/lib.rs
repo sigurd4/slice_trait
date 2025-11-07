@@ -4,6 +4,7 @@
 #![feature(ptr_metadata)]
 #![feature(const_index)]
 #![feature(const_convert)]
+#![allow(internal_features)]
 #![cfg_attr(feature = "length", feature(associated_type_defaults))]
 #![cfg_attr(feature = "length", feature(int_roundings))]
 #![cfg_attr(feature = "length", feature(macro_metavar_expr_concat))]
