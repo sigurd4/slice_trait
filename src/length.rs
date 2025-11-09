@@ -72,6 +72,22 @@ where
     type Value = Self::_Value;
 }
 
+pub trait Nearest: Length<Elem = ()>
+{
+    type Nearest<T>: ?Sized;
+}
+impl Nearest for [()]
+{
+    #[cfg(feature = "alloc")]
+    type Nearest<T> = alloc::vec::Vec<T>;
+    #[cfg(not(feature = "alloc"))]
+    type Nearest<T> = [T];
+}
+impl<const N: usize> Nearest for [(); N]
+{
+    type Nearest<T> = [T; N];
+}
+
 op!(pub Min [2]);
 op!(pub Max [2]);
 op!(pub Add [2]);
