@@ -1,6 +1,5 @@
 /// A trait for obtaining a slice `[Self::Item]`
-#[const_trait]
-pub trait AsSlice
+pub const trait AsSlice
 {
     type Elem: Sized;
 

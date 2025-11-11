@@ -3,8 +3,7 @@ use crate::AsSlice;
 use alloc::{boxed::Box, vec::Vec, alloc::Global};
 
 /// A trait for obtaining a boxed slice `[Self::Elem]`
-#[const_trait]
-pub trait IntoBoxedSlice: ~const AsSlice + Sized
+pub const trait IntoBoxedSlice: ~const AsSlice + Sized
 {
     /// Yields boxed slice from generic
     fn into_boxed_slice(self) -> Box<[Self::Elem]>;
