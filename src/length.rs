@@ -147,18 +147,10 @@ pub mod value
     op!(Windowed::windowed 2);
     op!(Interspersed::interspersed 1);
 
-    pub const fn cmp<L, R>(lhs: L, rhs: R) -> Ordering
-    where
-        L: LengthValue,
-        R: LengthValue
-    {
-        len(lhs).cmp(&len(rhs))
-    }
-
     macro_rules! cmp_op {
-        ($($op:ident)*) => {
+        ($($op:ident)* -> $ret:ty) => {
             $(
-                pub const fn $op<L, R>(lhs: L, rhs: R) -> bool
+                pub const fn $op<L, R>(lhs: L, rhs: R) -> $ret
                 where
                     L: LengthValue,
                     R: LengthValue
@@ -169,7 +161,27 @@ pub mod value
         };
     }
     
-    cmp_op!(eq ne gt lt ge le);
+    cmp_op!(cmp -> Ordering);
+    cmp_op!(eq ne gt lt ge le -> bool);
+
+    macro_rules! checked_op {
+        ($($trait:ident::$fn:ident)*) => {
+            $(
+                pub const fn ${concat(checked_, $fn)}<L, R>(lhs: L, rhs: R) -> Option<$trait<L, R>>
+                where
+                    L: LengthValue,
+                    R: LengthValue
+                {
+                    match usize::${concat(checked_, $fn)}(len(lhs), len(rhs))
+                    {
+                        Some(_) => Some($fn(lhs, rhs)),
+                        None => None
+                    }
+                }
+            )*
+        };
+    }
+    checked_op!(Sub::sub Add::add Mul::mul Div::div Rem::rem);
 }
 
 pub const fn as_metadata<T>(len: &T) -> T::Metadata
