@@ -94,6 +94,8 @@ pub type Mapped<T, U> = <T as Length>::Mapped<U>;
 
 pub mod value
 {
+    use core::cmp::Ordering;
+
     use super::*;
 
     pub type Length<T, U> = <T as LengthValue>::Length<U>;
@@ -144,6 +146,30 @@ pub mod value
     op!(DivFloor::div_floor 2);
     op!(Windowed::windowed 2);
     op!(Interspersed::interspersed 1);
+
+    pub const fn cmp<L, R>(lhs: L, rhs: R) -> Ordering
+    where
+        L: LengthValue,
+        R: LengthValue
+    {
+        len(lhs).cmp(&len(rhs))
+    }
+
+    macro_rules! cmp_op {
+        ($($op:ident)*) => {
+            $(
+                pub const fn $op<L, R>(lhs: L, rhs: R) -> bool
+                where
+                    L: LengthValue,
+                    R: LengthValue
+                {
+                    usize::$op(&len(lhs), &len(rhs))
+                }
+            )*
+        };
+    }
+    
+    cmp_op!(eq ne gt lt ge le);
 }
 
 pub const fn as_metadata<T>(len: &T) -> T::Metadata
