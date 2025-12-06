@@ -1,4 +1,4 @@
-use core::{fmt, hash::Hash, marker::Freeze};
+use core::{fmt, hash::Hash, marker::{Destruct, Freeze}};
 
 macro_rules! op {
     ($trait:ident 1) => {
@@ -212,7 +212,7 @@ where
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
     type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
-    type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
+    type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct;
 
     op!(Min 2);
     op!(Max 2);
@@ -372,7 +372,7 @@ mod private
         #[doc(hidden)]
         type _Length<T>: Length<Elem = T, _Value = Self, Metadata = Self::_Metadata> + ?Sized;
         #[doc(hidden)]
-        type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default;
+        type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct;
         
         fn or_len(n: usize) -> Self;
         fn from_metadata(n: Self::_Metadata) -> Self;
