@@ -224,20 +224,22 @@ where
         ptr_from_raw_parts_mut::<T>(ptr, metadata).as_mut().unwrap()
     }
 }
-pub const fn from_ptr_len<'a, T>(ptr: *const T::Elem, len: T::Value) -> &'a T
+pub const fn from_ptr_len<'a, T, L>(ptr: *const T, len: L) -> &'a L::Length<T>
 where
-    T: Length + ?Sized
+    L: LengthValue,
+    T: 'a
 {
     unsafe {
-        ptr_from_ptr_len::<T>(ptr, len).as_ref().unwrap()
+        ptr_from_ptr_len(ptr, len).as_ref().unwrap()
     }
 }
-pub const fn from_mut_ptr_len<'a, T>(ptr: *mut T::Elem, len: T::Value) -> &'a mut T
+pub const fn from_mut_ptr_len<'a, T, L>(ptr: *mut T, len: L) -> &'a mut L::Length<T>
 where
-    T: Length + ?Sized
+    L: LengthValue,
+    T: 'a
 {
     unsafe {
-        ptr_from_mut_ptr_len::<T>(ptr, len).as_mut().unwrap()
+        ptr_from_mut_ptr_len(ptr, len).as_mut().unwrap()
     }
 }
 pub const fn ptr_from_raw_parts<T>(ptr: *const T::Elem, metadata: T::Metadata) -> *const T
@@ -252,15 +254,17 @@ where
 {
     core::ptr::from_raw_parts_mut::<T>(ptr, metadata)
 }
-pub const fn ptr_from_ptr_len<T>(ptr: *const T::Elem, len: T::Value) -> *const T
+pub const fn ptr_from_ptr_len<'a, T, L>(ptr: *const T, len: L) -> *const L::Length<T>
 where
-    T: Length + ?Sized
+    L: LengthValue,
+    T: 'a
 {
     from_raw_parts(ptr, value::into_metadata(len))
 }
-pub const fn ptr_from_mut_ptr_len<T>(ptr: *mut T::Elem, len: T::Value) -> *mut T
+pub const fn ptr_from_mut_ptr_len<'a, T, L>(ptr: *mut T, len: L) -> *mut L::Length<T>
 where
-    T: Length + ?Sized
+    L: LengthValue,
+    T: 'a
 {
     from_raw_parts_mut(ptr, value::into_metadata(len))
 }
