@@ -1,7 +1,9 @@
+use core::ptr::Thin;
+
 /// A trait for obtaining a slice `[Self::Item]`
 pub const trait AsSlice
 {
-    type Elem: Sized;
+    type Elem: Sized + Thin;
 
     /// Yields slice from generic
     fn as_slice(&self) -> &[Self::Elem];
