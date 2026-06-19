@@ -412,7 +412,7 @@ mod private
         message = "`{Self}` is not a valid length",
         label = "The only valid lengths are `[_]` or `[_; _]`",
     )]
-    pub trait Length: AsSlice + Pointee<Metadata: const Destruct>
+    pub trait Length: AsSlice + Pointee
     {
         #[doc(hidden)]
         type _Value: const LengthValue<_Length<Self::Elem> = Self, _Metadata = Self::Metadata>;
