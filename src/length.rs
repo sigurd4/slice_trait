@@ -272,7 +272,7 @@ where
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
     type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
-    type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct;
+    type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct + 'static;
 
     op!(Min 2);
     op!(Max 2);
@@ -409,10 +409,10 @@ mod private
 
     #[doc(hidden)]
     #[rustc_on_unimplemented(
-        message = "`{Self}` is not a valid bulk length",
+        message = "`{Self}` is not a valid length",
         label = "The only valid lengths are `[_]` or `[_; _]`",
     )]
-    pub trait Length: AsSlice + Pointee
+    pub trait Length: AsSlice + Pointee<Metadata: const Destruct>
     {
         #[doc(hidden)]
         type _Value: const LengthValue<_Length<Self::Elem> = Self, _Metadata = Self::Metadata>;
@@ -427,12 +427,12 @@ mod private
     }
 
     #[doc(hidden)]
-    pub const trait LengthValue: Copy + const Destruct
+    pub const trait LengthValue: Copy + const Destruct + 'static
     {
         #[doc(hidden)]
         type _Length<T>: Length<Elem = T, _Value = Self, Metadata = Self::_Metadata> + ?Sized;
         #[doc(hidden)]
-        type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct;
+        type _Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct + 'static;
         
         fn or_len(n: usize) -> Self;
         fn from_metadata(n: Self::_Metadata) -> Self;
