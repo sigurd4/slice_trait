@@ -2,6 +2,7 @@
 #![feature(const_trait_impl)]
 #![feature(ptr_metadata)]
 #![feature(const_index)]
+#![feature(sized_hierarchy)]
 #![allow(internal_features)]
 #![cfg_attr(feature = "length", feature(associated_type_defaults))]
 #![cfg_attr(feature = "length", feature(int_roundings))]
@@ -66,7 +67,7 @@ mod test
     {
         const A: &[i32] = [1, 2, 3].as_slice();
 
-        const fn first<'a, S: [const] Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Elem>
+        const fn first<'a, S: ~const Slice + ?Sized>(slice: &'a S) -> Option<&'a S::Elem>
         where
             S::Elem: Copy
         {

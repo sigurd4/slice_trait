@@ -22,7 +22,7 @@ impl<T, const N: usize> IntoBoxedSlice for [T; N]
     }
 }
 
-impl<T> const IntoBoxedSlice for Box<[T]>
+const impl<T> IntoBoxedSlice for Box<[T]>
 {
     fn into_boxed_slice(self) -> Box<[Self::Elem]>
     {
@@ -30,7 +30,7 @@ impl<T> const IntoBoxedSlice for Box<[T]>
     }
 }
 
-impl<T> /*const*/ IntoBoxedSlice for Vec<T>
+/*const*/ impl<T> IntoBoxedSlice for Vec<T>
 {
     fn into_boxed_slice(mut self) -> Box<[Self::Elem]>
     {

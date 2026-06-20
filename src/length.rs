@@ -315,7 +315,7 @@ mod ops
                 #[doc(hidden)]
                 fn $fn(x: Self) -> <Self as super::LengthValue>::$trait;
             }
-            impl<L> const ${concat(Length, $trait)} for L
+            const impl<L> ${concat(Length, $trait)} for L
             where
                 L: LengthValue
             {
@@ -328,7 +328,7 @@ mod ops
                 }
             }
             #[allow(non_upper_case_globals)]
-            impl<const $x: usize> const ${concat(Length, $trait)} for [(); $x]
+            const impl<const $x: usize> ${concat(Length, $trait)} for [(); $x]
             where
                 [(); $expr]:
             {
@@ -352,7 +352,7 @@ mod ops
                 #[doc(hidden)]
                 fn $fn(lhs: Self, rhs: R) -> <Self as super::LengthValue>::$trait<R>;
             }
-            impl<L, R> const ${concat(Length, $trait)}<R> for L
+            const impl<L, R> ${concat(Length, $trait)}<R> for L
             where
                 L: LengthValue,
                 R: LengthValue
@@ -367,7 +367,7 @@ mod ops
                 }
             }
             #[allow(non_upper_case_globals)]
-            impl<const $lhs: usize, const $rhs: usize> const ${concat(Length, $trait)}<[(); $rhs]> for [(); $lhs]
+            const impl<const $lhs: usize, const $rhs: usize> ${concat(Length, $trait)}<[(); $rhs]> for [(); $lhs]
             where
                 [(); $expr]:
             {
@@ -439,7 +439,7 @@ mod private
         fn into_metadata(len: Self) -> Self::_Metadata;
         fn len(len: Self) -> usize;
     }
-    impl const LengthValue for usize
+    const impl LengthValue for usize
     {
         type _Length<T> = [T];
         type _Metadata = usize;
@@ -461,7 +461,7 @@ mod private
             len
         }
     }
-    impl<const N: usize> const LengthValue for [(); N]
+    const impl<const N: usize> LengthValue for [(); N]
     {
         type _Length<T> = [T; N];
         type _Metadata = ();

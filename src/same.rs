@@ -4,14 +4,14 @@ mod private
     {
         fn same(self) -> Result<T, Self>;
     }
-    impl<T, U> const Same<T> for U
+    const impl<T, U> Same<T> for U
     {
         default fn same(self) -> Result<T, Self>
         {
             Err(self)
         }
     }
-    impl<T> const Same<T> for T
+    const impl<T> Same<T> for T
     {
         fn same(self) -> Result<T, Self>
         {
@@ -24,7 +24,7 @@ pub const trait Same: Sized
 {
     fn same<T>(self) -> Result<T, Self>;
 }
-impl<U> const Same for U
+const impl<U> Same for U
 {
     fn same<T>(self) -> Result<T, Self>
     {

@@ -12,7 +12,7 @@ pub const trait AsSlice
     fn as_mut_slice(&mut self) -> &mut [Self::Elem];
 }
 
-impl<T> const AsSlice for [T]
+const impl<T> AsSlice for [T]
 {
     type Elem = T;
 
@@ -27,7 +27,7 @@ impl<T> const AsSlice for [T]
     }
 }
 
-impl<T, const N: usize> const AsSlice for [T; N]
+const impl<T, const N: usize> AsSlice for [T; N]
 {
     type Elem = T;
 
@@ -43,7 +43,7 @@ impl<T, const N: usize> const AsSlice for [T; N]
 }
 
 #[cfg(feature = "alloc")]
-impl<T, A> const AsSlice for alloc::vec::Vec<T, A>
+const impl<T, A> AsSlice for alloc::vec::Vec<T, A>
 where
     A: core::alloc::Allocator
 {
@@ -61,7 +61,7 @@ where
 }
 
 #[cfg(feature = "alloc")]
-impl<T, A> const AsSlice for alloc::boxed::Box<T, A>
+const impl<T, A> AsSlice for alloc::boxed::Box<T, A>
 where
     A: core::alloc::Allocator,
     T: ~const AsSlice + ?Sized

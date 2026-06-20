@@ -10,7 +10,7 @@ pub const trait BoxedSlice: private::BoxedSlice + /*~const*/ DerefMut<Target = [
     
 }
 
-impl<T> const BoxedSlice for Box<[T]>
+const impl<T> BoxedSlice for Box<[T]>
 {
     
 }
