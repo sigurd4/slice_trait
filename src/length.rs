@@ -49,6 +49,7 @@ pub trait Length: private::Length<_Value = Self::Value>
     type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata>;
     type Mapped<U>: Length<Elem = U, Value = Self::Value, _Value = Self::Value, Metadata = Self::Metadata> + ?Sized = value::Length<Self::Value, U>;
 
+    op!(Intersect [2]);
     op!(Min [2]);
     op!(Max [2]);
     op!(Add [2]);
@@ -72,6 +73,7 @@ where
     type Value = Self::_Value;
 }
 
+op!(pub Intersect [2]);
 op!(pub Min [2]);
 op!(pub Max [2]);
 op!(pub Add [2]);
@@ -131,6 +133,7 @@ pub mod value
         self::len(from_metadata::<T>(len))
     }
 
+    pub type Intersect<X, Y> = <X as LengthValue>::Intersect<Y>;
     op!(Min::min 2);
     op!(Max::max 2);
     op!(Add::add 2);
@@ -274,6 +277,7 @@ pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>
     type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
     type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct + 'static;
 
+    op!(Intersect 2);
     op!(Min 2);
     op!(Max 2);
     op!(Add 2);
@@ -303,6 +307,30 @@ mod ops
     use super::*;
 
     use crate::same::Same;
+
+    #[doc(hidden)]
+    pub trait LengthIntersect<R>: LengthValue
+    where
+        R: LengthValue
+    {
+        #[doc(hidden)]
+        type Output: LengthValue;
+    }
+    impl<L, R> LengthIntersect<R> for L
+    where
+        L: LengthValue,
+        R: LengthValue
+    {
+        #[doc(hidden)]
+        default type Output = usize;
+    }
+    impl<L> LengthIntersect<L> for L
+    where
+        L: LengthValue
+    {
+        #[doc(hidden)]
+        type Output = L;
+    }
 
     macro_rules! op {
         ($trait:ident::$fn:ident($x:ident) $expr:expr) => {
