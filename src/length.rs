@@ -46,7 +46,7 @@ macro_rules! op {
 )]
 pub trait Length: private::Length<_Value = Self::Value>
 {
-    type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata>;
+    type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata> + LengthIntersect<Self::_Value, Output = Self::_Value>;
     type Mapped<U>: Length<Elem = U, Value = Self::Value, _Value = Self::Value, Metadata = Self::Metadata> + ?Sized = value::Length<Self::Value, U>;
 
     op!(Intersect [2]);
@@ -91,6 +91,7 @@ op!(pub Windowed [2]);
 op!(pub Interspersed [1]);
 
 pub use crate::Elem;
+use crate::length::ops::LengthIntersect;
 pub type Value<T> = <T as Length>::Value;
 pub type Mapped<T, U> = <T as Length>::Mapped<U>;
 
@@ -274,7 +275,7 @@ where
 
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
-    type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata> + ?Sized;
+    type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata, Intersect<Self::Length<T>> = Self::Length<T>> + ?Sized;
     type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct + 'static;
 
     op!(Intersect 2);
