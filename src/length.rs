@@ -46,7 +46,36 @@ macro_rules! op {
 )]
 pub trait Length: private::Length<_Value = Self::Value>
 {
-    type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata> + LengthIntersect<Self::_Value, Output = Self::_Value>;
+    type Value: LengthValue<Length<Self::Elem> = Self, _Length<Self::Elem> = Self, Metadata = Self::Metadata, _Metadata = Self::Metadata>
+        + LengthIntersect<Self::_Value, Output = Self::_Value>
+        /*+ LengthIntersect<usize, Output = usize>
+        + LengthMin<Self::_Value, Output = Self::_Value>
+        + LengthMin<usize, Output = usize>
+        + LengthMax<Self::_Value, Output = Self::_Value>
+        + LengthMax<[(); 0], Output = Self::_Value>
+        + LengthMax<usize, Output = usize>
+        + LengthAdd<[(); 0], Output = Self::_Value>
+        + LengthAdd<usize, Output = usize>
+        + LengthSub<[(); 0], Output = Self::_Value>
+        + LengthSub<usize, Output = usize>
+        + LengthMul<[(); 1], Output = Self::_Value>
+        + LengthMul<usize, Output = usize>
+        + LengthDiv<[(); 1], Output = Self::_Value>
+        + LengthDiv<usize, Output = usize>
+        + LengthSaturatingAdd<[(); 0], Output = Self::_Value>
+        + LengthSaturatingAdd<usize, Output = usize>
+        + LengthSaturatingSub<[(); 0], Output = Self::_Value>
+        + LengthSaturatingSub<usize, Output = usize>
+        + LengthSaturatingMul<[(); 1], Output = Self::_Value>
+        + LengthSaturatingMul<usize, Output = usize>
+        + LengthSaturatingDiv<[(); 1], Output = Self::_Value>
+        + LengthSaturatingDiv<usize, Output = usize>
+        + LengthDivCeil<[(); 1], Output = Self::_Value>
+        + LengthDivCeil<usize, Output = usize>
+        + LengthDivFloor<[(); 1], Output = Self::_Value>
+        + LengthDivFloor<usize, Output = usize>
+        + LengthWindowed<[(); 1], Output = Self::_Value>*/
+        ;
     type Mapped<U>: Length<Elem = U, Value = Self::Value, _Value = Self::Value, Metadata = Self::Metadata> + ?Sized = value::Length<Self::Value, U>;
 
     op!(Intersect [2]);
@@ -91,7 +120,7 @@ op!(pub Windowed [2]);
 op!(pub Interspersed [1]);
 
 pub use crate::Elem;
-use crate::length::ops::LengthIntersect;
+use crate::length::ops::*;
 pub type Value<T> = <T as Length>::Value;
 pub type Mapped<T, U> = <T as Length>::Mapped<U>;
 
@@ -275,7 +304,36 @@ where
 
 pub trait LengthValue: const private::LengthValue<_Length<()> = Self::Length<()>, _Metadata = Self::Metadata>
 {
-    type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata, Intersect<Self::Length<T>> = Self::Length<T>> + ?Sized;
+    type Length<T>: Length<Elem = T, Value = Self, _Value = Self, Metadata = Self::Metadata,
+        Intersect<Self::Length<T>> = Self::Length<T>,
+        /*Intersect<[T]> = [T],
+        Min<Self::Length<T>> = Self::Length<T>,
+        Min<[T]> = [T],
+        Max<Self::Length<T>> = Self::Length<T>,
+        Max<[T; 0]> = Self::Length<T>,
+        Max<[T]> = [T],
+        Add<[T; 0]> = Self::Length<T>,
+        Add<[T]> = [T],
+        Sub<[T; 0]> = Self::Length<T>,
+        Sub<[T]> = [T],
+        Mul<[T; 1]> = Self::Length<T>,
+        Mul<[T]> = [T],
+        Div<[T; 1]> = Self::Length<T>,
+        Div<[T]> = [T],
+        SaturatingAdd<[T; 0]> = Self::Length<T>,
+        SaturatingAdd<[T]> = [T],
+        SaturatingSub<[T; 0]> = Self::Length<T>,
+        SaturatingSub<[T]> = [T],
+        SaturatingMul<[T; 1]> = Self::Length<T>,
+        SaturatingMul<[T]> = [T],
+        SaturatingDiv<[T; 1]> = Self::Length<T>,
+        SaturatingDiv<[T]> = [T],
+        DivCeil<[T; 1]> = Self::Length<T>,
+        DivCeil<[T]> = [T],
+        DivFloor<[T; 1]> = Self::Length<T>,
+        DivFloor<[T]> = [T],
+        Windowed<[T; 1]> = Self::Length<T>*/
+    > + ?Sized;
     type Metadata: fmt::Debug + Copy + Send + Sync + const Ord + Hash + Unpin + Freeze + const Default + const Destruct + 'static;
 
     op!(Intersect 2);
